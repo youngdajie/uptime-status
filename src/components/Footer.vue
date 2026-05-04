@@ -73,6 +73,7 @@
             class="font-semibold hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
           >Uptime-Status</a> Version {{ pkg.version }}
         </div>
+		
         <div>
           基于 <a 
             href="https://uptimerobot.com" 
