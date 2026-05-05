@@ -164,4 +164,7 @@
 		margin: 10px 0 10px 0;
 		color: rgb(31 41 55 / 1);
 	}
+	.dark .sun-dark p {
+		color: #9ca3af;
+	}
 </style>
