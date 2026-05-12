@@ -2,6 +2,7 @@
 
 复刻于开源项目 [uptime-status](https://github.com/JLinMr/Uptime-Status)
 接口十分有九分的不稳定，多刷新，只当个在线检测器，监测结果不准，优势是去服务器化，零成本
+
 在原版的基础上，进行了如下修改：
 
 - 首次成功访问 API 数据会 → 写缓存在 localStorage，加一层容错
