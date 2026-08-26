@@ -1,16 +1,16 @@
 {
   "name": "uptime-status",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
-  "author": "JLinmr",
-  "url": "https://www.bsgun.cn",
-  "email": "ruoms@qq.com",
+  "author": "JIE",
+  "url": "https://www.yangjie.site",
+  "email": "ok@yangjie.site",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JLinmr/Uptime-Status"
+    "url": "https://github.com/youngdajie/uptime-status"
   },
-  "start-year": "2020",
-  "repositoryUrl": "https://github.com/JLinmr/Uptime-Status",
+  "start-year": "2019",
+  "repositoryUrl": "https://github.com/youngdajie/uptime-status",
   "type": "module",
   "scripts": {
     "dev": "vite",
