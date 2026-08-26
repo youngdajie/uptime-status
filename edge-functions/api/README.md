@@ -1,6 +1,6 @@
 # API 目录说明
 
-本目录 (`functions/api/`) 包含  **Cloudflare Pages** 的 API 代理实现，对接 UptimeRobot **v3 API**。
+本目录 (`edge-functions/api/`) 包含 **腾讯云 EdgeOne Pages** 的 API 代理实现，对接 UptimeRobot **v3 API**。
 
 ## 文件说明
 
@@ -12,7 +12,7 @@
 - 处理 CORS（跨域）请求
 - 服务端缓存（5 分钟）与 429 限流响应
 
-逻辑与 `api/status.js`（Vercel 版）共用同一套实现。
+逻辑与 `api/status.js`（Cloudflare 版）共用同一套实现，但由于EdgeOne的Edge Functions只读取特定目录下的代码，特此抽离。
 
 ## 接口说明
 

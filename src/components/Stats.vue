@@ -1,159 +1,72 @@
 <template>
-	<div class="sun-dark">
-		<P>接口十分有九分的不稳定，多刷新，只当个在线检测器，监测结果不准，优势是去服务器化，零成本</P>
-		<P>首次成功访问 API 数据会 → 写缓存在 localStorage，加一层容错</P>
-	</div>
-	<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-		<div v-for="(item, index) in overviewItems" :key="index" class="card-base animated-border animate-fade"
-			:class="[item.containerClass]" @mouseenter="$event.target.classList.add('hovered')">
-			<div class="flex items-start justify-between relative">
-				<div>
-					<div class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
-						{{ item.label }}
-					</div>
-					<div class="mt-2 text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-						<span>{{ displayValues[index] }}</span><span v-if="item.unit">{{ item.unit }}</span>
-					</div>
-					<div class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-						{{ item.desc }}
-					</div>
-				</div>
-				<div class="p-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
-					<Icon :icon="item.icon" class="w-6 h-6 transition-colors duration-200" :class="item.iconColor" />
-				</div>
-			</div>
-		</div>
-	</div>
+  <div class="sun-dark">
+    <P>接口十分有九分的不稳定，多刷新，只当个在线检测器，监测结果不准，优势是去服务器化，零成本</P>
+    <P>首次成功访问 API 数据会 → 写缓存在 localStorage，加一层容错</P>
+  </div>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div v-for="(item, index) in overviewItems" :key="index" class="card-base animated-border animate-fade"
+      :class="item.containerClass" @mouseenter="$event.target.classList.add('hovered')">
+      <div class="flex items-start justify-between relative">
+        <div>
+          <div class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">{{ item.label }}</div>
+          <div class="mt-2 text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <span>{{ displayValues[index] }}</span><span v-if="item.unit">{{ item.unit }}</span>
+          </div>
+          <div class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{{ item.desc }}</div>
+        </div>
+        <div class="p-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <Icon :icon="item.icon" class="w-6 h-6 transition-colors duration-200" :class="item.iconColor" />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-	import {
-		computed,
-		ref,
-		watch,
-		onMounted
-	} from 'vue'
-	import {
-		Icon
-	} from '@iconify/vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Icon } from '@iconify/vue'
+import { isMonitorOnline, isMonitorAbnormal } from '@/utils/monitor'
 
-	const props = defineProps({
-		monitors: {
-			type: Array,
-			default: () => []
-		}
-	})
+const { t } = useI18n()
+const props = defineProps({ monitors: { type: Array, default: () => [] } })
 
-	/**
-	 * 计算网站总数
-	 */
-	const total = computed(() => props.monitors.length)
+const total = computed(() => props.monitors.length)
+const normal = computed(() => props.monitors.filter((m) => isMonitorOnline(m.status)).length)
+const abnormal = computed(() => props.monitors.filter((m) => isMonitorAbnormal(m.status)).length)
+const avgUptime = computed(() => {
+  const list = props.monitors.filter((m) => m.stats?.uptime != null)
+  if (!list.length) return 0
+  return Number((list.reduce((a, m) => a + m.stats.uptime, 0) / list.length).toFixed(2))
+})
 
-	/**
-	 * 计算正常网站数
-	 */
-	const normal = computed(() => props.monitors.filter(m => m.status === 2 || m.status === 1).length)
+const displayValues = ref([0, 0, 0, 0])
 
-	/**
-	 * 计算异常网站数
-	 */
-	const abnormal = computed(() => props.monitors.filter(m => m.status === 9 || m.status === 0).length)
-	const avgResponse = computed(() => {
-		if (!props.monitors?.length) return 0
-		const onlineMonitors = props.monitors.filter(m =>
-			m.status === 2 && m.stats?.avgResponseTime > 0
-		)
-		if (!onlineMonitors.length) return 0
-		return Math.round(
-			onlineMonitors.reduce((acc, m) => acc + m.stats.avgResponseTime, 0) / onlineMonitors.length
-		)
-	})
+const animateValue = (start, end, duration, index, decimals = 0) => {
+  const t0 = performance.now()
+  const tick = (now) => {
+    const p = Math.min((now - t0) / duration, 1)
+    const val = start + (end - start) * p
+    displayValues.value[index] = decimals ? val.toFixed(decimals) : Math.floor(val)
+    if (p < 1) requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+}
 
-	/**
-	 * 显示值
-	 */
-	const displayValues = ref([0, 0, 0, 0])
+const overviewItems = computed(() => [
+  { label: t('stats.totalWebsites'), value: total.value, desc: t('stats.allWebsites'), icon: 'bi:check-circle', iconColor: 'text-emerald-500', containerClass: 'after:border-emerald-500/50 dark:after:border-emerald-400/50' },
+  { label: t('stats.normalWebsites'), value: normal.value, desc: t('stats.accessNormal'), icon: 'bi:check-circle-fill', iconColor: 'text-green-500', containerClass: 'after:border-green-500/50 dark:after:border-green-400/50' },
+  { label: t('stats.abnormalWebsites'), value: abnormal.value, desc: t('stats.accessAbnormal'), icon: 'bi:x-circle-fill', iconColor: 'text-red-500', containerClass: 'after:border-red-500/50 dark:after:border-red-400/50' },
+  { label: t('stats.avgUptime'), value: avgUptime.value, unit: '%', desc: t('stats.last30Days'), icon: 'bi:graph-up-arrow', iconColor: 'text-blue-500', containerClass: 'after:border-blue-500/50 dark:after:border-blue-400/50' }
+])
 
-	/**
-	 * 动画值
-	 */
-	const animateValue = (start, end, duration, index) => {
-		const startTime = performance.now()
-		const updateValue = (currentTime) => {
-			const elapsed = currentTime - startTime
-			const progress = Math.min(elapsed / duration, 1)
-
-			displayValues.value[index] = Math.floor(start + (end - start) * progress)
-
-			if (progress < 1) {
-				requestAnimationFrame(updateValue)
-			}
-		}
-		requestAnimationFrame(updateValue)
-	}
-
-	/**
-	 * 概览项
-	 */
-	const overviewItems = computed(() => [{
-			label: '监控网站',
-			value: total.value,
-			desc: '全部网站',
-			icon: 'bi:check-circle',
-			iconColor: 'text-emerald-500',
-			containerClass: 'after:border-emerald-500/50 dark:after:border-emerald-400/50'
-		},
-		{
-			label: '正常网站',
-			value: normal.value,
-			desc: '访问正常',
-			icon: 'bi:check-circle-fill',
-			iconColor: 'text-green-500',
-			containerClass: 'after:border-green-500/50 dark:after:border-green-400/50'
-		},
-		{
-			label: '异常网站',
-			value: abnormal.value,
-			desc: '访问异常',
-			icon: 'bi:x-circle-fill',
-			iconColor: 'text-red-500',
-			containerClass: 'after:border-red-500/50 dark:after:border-red-400/50'
-		},
-		{
-			label: '平均响应',
-			value: avgResponse.value,
-			unit: 'ms',
-			desc: '网络延迟',
-			icon: 'bi:clock',
-			iconColor: 'text-blue-500',
-			containerClass: 'after:border-blue-500/50 dark:after:border-blue-400/50'
-		}
-	])
-
-	/**
-	 * 监听每个值的变化
-	 */
-	watch(() => overviewItems.value.map(item => item.value), (newValues, oldValues) => {
-		newValues.forEach((newVal, index) => {
-			const oldVal = oldValues?.[index] ?? 0
-			if (newVal !== oldVal) {
-				animateValue(oldVal, newVal, 1000, index)
-			}
-		})
-	}, {
-		immediate: true
-	})
-
-	/**
-	 * 组件挂载时启动动画
-	 */
-	onMounted(() => {
-		overviewItems.value.forEach((item, index) => {
-			animateValue(0, item.value, 1000, index)
-		})
-	})
+watch(() => overviewItems.value.map((i) => i.value), (vals, old) => {
+  vals.forEach((v, i) => {
+    const prev = parseFloat(old?.[i]) || 0
+    if (v !== prev) animateValue(prev, v, 1000, i, i === 3 ? 2 : 0)
+  })
+}, { immediate: true })
 </script>
-
 <style>
 	.sun-dark {
 		font-weight: 700;
@@ -165,6 +78,6 @@
 		color: rgb(31 41 55 / 1);
 	}
 	.dark .sun-dark p {
-		color: #9ca3af;
+		color: rgb(156 163 175 / var(--tw-text-opacity, 1));
 	}
 </style>

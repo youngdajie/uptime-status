@@ -66,30 +66,29 @@
       </div>
       <div class="flex flex-col items-center gap-1">
         <div>
-          <a 
-            :href="pkg.repositoryUrl" 
-            target="_blank" 
+          <a
+            :href="pkg.repositoryUrl"
+            target="_blank"
             rel="noopener noreferrer"
             class="font-semibold hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
-          >Uptime-Status</a> Version {{ pkg.version }}
+          >Uptime-Status</a> {{ t('footer.version') }} {{ pkg.version }}
         </div>
-		
         <div>
-          基于 <a 
-            href="https://uptimerobot.com" 
-            target="_blank" 
+          {{ t('footer.poweredBy') }} <a
+            href="https://uptimerobot.com"
+            target="_blank"
             rel="noopener noreferrer"
             class="font-semibold hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
-          >UptimeRobot</a> 接口 | 检测频率 5 分钟
+          >{{ t('footer.uptimeRobot') }}</a> {{ t('footer.apiInterface') }} | {{ t('footer.checkFrequency') }}
         </div>
         <div>
-          Copyright © 2019 - {{ new Date().getFullYear() }} <a 
+          {{ t('footer.copyright') }} © {{ pkg['start-year'] }} - {{ new Date().getFullYear() }} <a
             :href="pkg.url"
             target="_blank"
             rel="noopener noreferrer"
             class="font-semibold hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors"
           >
-            JIE
+            {{ pkg.author }}
           </a>
         </div>
       </div>
@@ -99,8 +98,11 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '@iconify/vue'
 import pkg from '../../package.json'
+
+const { t } = useI18n()
 
 /**
  * 控制返回顶部按钮的显示
